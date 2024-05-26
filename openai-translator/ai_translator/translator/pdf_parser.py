@@ -1,6 +1,8 @@
-import pdfplumber
+from io import BufferedReader, BytesIO
 from typing import Optional
-from book import Book, Page, Content, ContentType, TableContent
+
+import pdfplumber
+from book import Book, Content, ContentType, Page, TableContent
 from translator.exceptions import PageOutOfRangeException
 from utils import LOG
 
@@ -9,10 +11,15 @@ class PDFParser:
     def __init__(self):
         pass
 
-    def parse_pdf(self, pdf_file_path: str, pages: Optional[int] = None) -> Book:
-        book = Book(pdf_file_path)
+    def parse_pdf(
+        self, path_or_fp: str | BufferedReader | BytesIO, pages: Optional[int] = None
+    ) -> Book:
+        bookPath = ""
+        if isinstance(path_or_fp, str):
+            bookPath = path_or_fp
+        book = Book(bookPath)
 
-        with pdfplumber.open(pdf_file_path) as pdf:
+        with pdfplumber.open(path_or_fp) as pdf:
             if pages is not None and pages > len(pdf.pages):
                 raise PageOutOfRangeException(len(pdf.pages), pages)
 
@@ -38,14 +45,16 @@ class PDFParser:
                 if raw_text:
                     # Remove empty lines and leading/trailing whitespaces
                     raw_text_lines = raw_text.splitlines()
-                    cleaned_raw_text_lines = [line.strip() for line in raw_text_lines if line.strip()]
+                    cleaned_raw_text_lines = [
+                        line.strip() for line in raw_text_lines if line.strip()
+                    ]
                     cleaned_raw_text = "\n".join(cleaned_raw_text_lines)
 
-                    text_content = Content(content_type=ContentType.TEXT, original=cleaned_raw_text)
+                    text_content = Content(
+                        content_type=ContentType.TEXT, original=cleaned_raw_text
+                    )
                     page.add_content(text_content)
                     LOG.debug(f"[raw_text]\n {cleaned_raw_text}")
-
-
 
                 # Handling tables
                 if tables:
