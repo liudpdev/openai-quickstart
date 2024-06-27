@@ -1,0 +1,5 @@
+input_file: "tests/test.pdf"
+output_file_format: "markdown"
+source_language: "English"
+target_language: "Chinese"
+ai_api_base_url: "http://0.0.0.0:8000"
